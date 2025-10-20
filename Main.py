@@ -1,6 +1,8 @@
 import os
+
+from langchain.chains.retrieval_qa.base import RetrievalQA
+from langchain_community.chat_models import ChatOpenAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from openai import OpenAI
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader, TextLoader, UnstructuredMarkdownLoader
@@ -33,3 +35,14 @@ def GetFAISSVector(file: str):
     vectorDB.save_local(faissIndexPath)
 
     return vectorDB
+
+def runLLM(vectorDB, query: str) -> str:
+    openAILLM = ChatOpenAI(temperature=0, verbose=True)
+    retrievalQA = RetrievalQA.from_chain_type(
+        llm=openAILLM, chain_type="stuff", retriever=vectorDB.as_retriever()
+    )
+
+    answer = retrievalQA.run(query)
+
+    return answer
+
